@@ -7,7 +7,7 @@ import time
 
 
 def main():
-    use_cuda = False
+    use_cuda = torch.cuda.is_available()
     batch_size = 100
     device = torch.device("cuda" if use_cuda else "cpu")
     epochs = 300
