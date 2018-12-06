@@ -1,16 +1,18 @@
-from MFVI.model.MLP import MFVIClassificationMLP
-from MFVI.inference.MFVI import MeanFieldVariationalInference
+from MFVI.inference import MeanFieldVariationalInference
 import torch
+import torch.nn as nn
+import MFVI as mm
 import torch.optim as optim
 from torchvision import datasets, transforms
+from model.MLP_MFVI import MLP_MFVI
 import time
 
 
 def main():
     use_cuda = torch.cuda.is_available()
-    batch_size = 100
-    device = torch.device("cuda" if use_cuda else "cpu")
-    epochs = 300
+    batch_size = 900
+    test_batch_size = 900
+    epochs = 100
 
     kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
     train_loader = torch.utils.data.DataLoader(
@@ -25,18 +27,24 @@ def main():
             transforms.ToTensor(),
             transforms.Normalize((0.1307,), (0.3081,))
         ])),
-        batch_size=batch_size, shuffle=True, **kwargs)
+        batch_size=test_batch_size, shuffle=True, **kwargs)
 
-    model = MFVIClassificationMLP(28*28, [400, 400], 10)
-    model = model.to(device)
+    model = MLP_MFVI(28 * 28, [400, 400], 10)
 
-    inference = MeanFieldVariationalInference(model, optim.Adam(model.parameters()))
+    if use_cuda:
+        model.cuda()
+
+    loss = mm.CrossEntropyLoss()
+
+    optimiser = optim.Adam([{'params':model.parameters()}, {'params': loss.parameters()}])
+
+    inference = mm.MeanFieldVariationalInference(model, loss, optimiser, train_loader, test_loader)
 
     for epoch in range(epochs):
         t = time.time()
-        elbo, log_lik, kl = inference.step(train_loader, 60000, 10, device)
+        elbo, log_lik, kl = inference.train_step()
         train_time = time.time() - t
-        ll, kl, aux = inference.evaluate(test_loader, 10000, 100, device)
+        ll, kl, aux = inference.evaluate()
         test_time = time.time() - train_time - t
 
         print(f'\rEpoch {epoch:4.0f}, '
