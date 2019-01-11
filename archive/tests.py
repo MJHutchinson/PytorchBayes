@@ -1,4 +1,4 @@
-from data.data_sets import ClassificationDataset, ClassificationDataloader, RegressionDataloader
+from data.data_sets import ClassificationDataset, RegressionDataloader
 import torch
 import numpy as np
 import time

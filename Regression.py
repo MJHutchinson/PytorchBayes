@@ -1,11 +1,8 @@
 import time
 import os
-from MFVI.inference import MeanFieldVariationalInference
 import torch
-import torch.nn as nn
 import MFVI as mm
 import torch.optim as optim
-from torchvision import datasets, transforms
 from model.MLP_MFVI import MLP_MFVI
 from data.data_sets import RegressionDataloader
 import numpy as np
