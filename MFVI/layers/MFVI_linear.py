@@ -38,6 +38,7 @@ class MFVILinear(MFVIModule):
 
             eps_a = torch.normal(mean=torch.zeros(K, N, self.output_size)).to(self.W_m.device)
             eps_b = torch.normal(mean=torch.zeros(K, 1, self.output_size)).to(self.W_m.device)
+
             a = m_a + eps_a * torch.sqrt(v_a + 1e-9)
             b = self.b_m + eps_b * torch.exp(0.5 * self.b_v)
             return a + b

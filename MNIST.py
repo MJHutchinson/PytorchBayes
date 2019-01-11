@@ -1,3 +1,5 @@
+import time
+import os
 from MFVI.inference import MeanFieldVariationalInference
 import torch
 import torch.nn as nn
@@ -5,29 +7,46 @@ import MFVI as mm
 import torch.optim as optim
 from torchvision import datasets, transforms
 from model.MLP_MFVI import MLP_MFVI
-import time
+from data.data_sets import ClassificationDataset, ClassificationDataloader
 
 
 def main():
     use_cuda = torch.cuda.is_available()
     batch_size = 900
     test_batch_size = 900
-    epochs = 100
+    epochs = 2
 
-    kwargs = {'num_workers': 1, 'pin_memory': True} if use_cuda else {}
-    train_loader = torch.utils.data.DataLoader(
-        datasets.MNIST('../data', train=True, download=True,
-                       transform=transforms.Compose([
-                           transforms.ToTensor(),
-                           transforms.Normalize((0.1307,), (0.3081,))
-                       ])),
-        batch_size=batch_size, shuffle=True, **kwargs)
-    test_loader = torch.utils.data.DataLoader(
-        datasets.MNIST('../data', train=False, transform=transforms.Compose([
-            transforms.ToTensor(),
-            transforms.Normalize((0.1307,), (0.3081,))
-        ])),
-        batch_size=test_batch_size, shuffle=True, **kwargs)
+    kwargs = {'num_workers': 8, 'pin_memory': True} if use_cuda else {}
+    # train_loader = torch.utils.data.DataLoader(
+    #     datasets.MNIST('../data', train=True, download=True,
+    #                    transform=transforms.Compose([
+    #                        transforms.ToTensor(),
+    #                        transforms.Normalize((0.1307,), (0.3081,))
+    #                    ])),
+    #     batch_size=batch_size, shuffle=True, **kwargs)
+    # test_loader = torch.utils.data.DataLoader(
+    #     datasets.MNIST('../data', train=False, transform=transforms.Compose([
+    #         transforms.ToTensor(),
+    #         transforms.Normalize((0.1307,), (0.3081,))
+    #     ])),
+    #     batch_size=test_batch_size, shuffle=True, **kwargs)
+
+    # train_loader = torch.utils.data.DataLoader(
+    #     ClassificationDataset('mnist', train=True),
+    #     batch_size=batch_size,
+    #     shuffle=True,
+    #     **kwargs
+    # )
+    #
+    # test_loader = torch.utils.data.DataLoader(
+    #     ClassificationDataset('mnist', train=False),
+    #     batch_size=batch_size,
+    #     shuffle=True,
+    #     **kwargs
+    # )
+
+    train_loader = ClassificationDataloader('mnist', batch_size, data_dir=os.path.abspath('../data'), train=True, shuffle=True)
+    test_loader = ClassificationDataloader('mnist', batch_size, data_dir=os.path.abspath('../data'), train=False, shuffle=False)
 
     model = MLP_MFVI(28 * 28, [400, 400], 10)
 

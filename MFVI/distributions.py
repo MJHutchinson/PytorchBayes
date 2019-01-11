@@ -2,6 +2,7 @@ import torch
 import numpy as np
 log_2pi = np.log(2*np.pi)
 
+
 class Distribution(object):
 
     def pdf(self, x):
@@ -29,7 +30,6 @@ class Normal(Distribution):
         self.mu = mu
         self.logvar = logvar
         self.shape = mu.size()
-
 
     def logpdf(self, x):
         return -0.5 * log_2pi \

@@ -24,7 +24,7 @@ class Module_MFVI(nn.Module):
 
 class Linear_MFVI(Module_MFVI):
 
-    def __init__(self, input_features, output_features, p_mu=0, p_logvar=0):
+    def __init__(self, input_features, output_features, p_mu=0, p_var=1.):
 
         super().__init__()
 
@@ -34,8 +34,10 @@ class Linear_MFVI(Module_MFVI):
         if isinstance(p_mu, Number):
             p_mu = torch.Tensor([p_mu])
 
-        if isinstance(p_logvar, Number):
-            p_logvar = torch.Tensor([p_logvar])
+        if isinstance(p_var, Number):
+            p_var = torch.Tensor([p_var])
+
+        p_logvar = torch.log(p_var)
 
         self.p_mu     = Parameter(torch.Tensor(p_mu)    , requires_grad=False)
         self.p_logvar = Parameter(torch.Tensor(p_logvar), requires_grad=False)
@@ -71,9 +73,9 @@ class Linear_MFVI(Module_MFVI):
         out_sigma = torch.sqrt(1e-8 + out_var)
 
         if cuda:
-            eps = torch.randn(out_mean.size()).cuda()
+            eps = torch.cuda.FloatTensor(out_mean.shape).normal_() # torch.randn(out_mean.size()).cuda() #
         else:
-            eps = torch.randn(out_mean.size())
+            eps = torch.FloatTensor(out_mean.shape).normal_()
 
         return out_mean + eps * out_sigma
 

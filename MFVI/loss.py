@@ -3,6 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
+cuda = torch.cuda.is_available()
 
 class LogHomoskedasticGaussianLoss(_Loss):
 
@@ -14,8 +15,15 @@ class LogHomoskedasticGaussianLoss(_Loss):
         return torch.distributions.Normal(inputs, torch.exp(0.5 * self.log_var)).log_prob(targets).mean()
 
     def test(self, inputs, targets):
-        inputs = inputs.mean(dim=0)
-        return torch.distributions.Normal(inputs, torch.exp(0.5 * self.log_var)).log_prob(targets).mean()
+        log_probs = torch.distributions.Normal(inputs, torch.exp(0.5 * self.log_var)).log_prob(targets)
+        correction = torch.log(torch.Tensor([log_probs.size(0)]))
+        log_probs = torch.logsumexp(log_probs, 0)
+        if cuda:
+            correction = correction.cuda()
+
+        log_probs = log_probs - correction
+
+        return log_probs.sum()
 
 
 class CrossEntropyLoss(_Loss):
