@@ -23,22 +23,17 @@ args = parser.parse_args()
 
 experiment_config = yaml.load(open(args.config, 'rb'))
 
-# Script parameters
-log_dir = args.logdir
-common_name = args.commonname
-# data_set = experiment_config['data_set']
-data_set = args.dataset
 use_cuda = torch.cuda.is_available()
 
 # Set up logging directory and grab the config file
 date_time = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
-if common_name is not None:
-    results_dir = f'{log_dir}/{data_set}/{common_name}-{date_time}'
+if args.commonname is not None:
+    results_dir = f'{args.logdir}/{args.dataset}/{args.commonname}-{date_time}'
 else:
-    results_dir = f'{log_dir}/{data_set}/{date_time}'
+    results_dir = f'{args.logdir}/{args.dataset}/{date_time}'
 
-latest_dir = f'{log_dir}/{data_set}/latest'
+latest_dir = f'{args.logdir}/{args.dataset}/latest'
 
 #####
 
@@ -64,15 +59,15 @@ hidden_layers = experiment_config['hidden_layers']
 batch_size = experiment_config['batch_size']
 epochs = experiment_config['epochs']
 
-print(f'Running experiment on {data_set} with parameters:\n'
+print(f'Running experiment on {args.dataset} with parameters:\n'
       f'{experiment_config}\n'
       f'Saving results in {results_dir}\n')
 
 
 # Load in dataset and related info
 
-train_loader = RegressionDataloader(data_set, batch_size, data_dir=os.path.abspath('./data'), train=True, shuffle=True)
-test_loader  = RegressionDataloader(data_set, batch_size, data_dir=os.path.abspath('./data'), train=False, shuffle=False)
+train_loader = RegressionDataloader(args.dataset, batch_size, data_dir=args.datadir, train=True, shuffle=True)
+test_loader  = RegressionDataloader(args.dataset, batch_size, data_dir=args.datadir, train=False, shuffle=False)
 input_size, train_length, output_size = train_loader.get_dims()
 
 # Design search space for paramters
