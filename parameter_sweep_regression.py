@@ -88,7 +88,7 @@ for idx, (hidden_size, lr, prior_var) in enumerate(param_space):
 
     inference = mm.MeanFieldVariationalInference(model, loss, optimiser, train_loader, test_loader)
 
-    print(f'running model {inference}, parameter set {idx+1} of {len(param_space)}')
+    print(f'{args.dataset} - running model {inference}, parameter set {idx+1} of {len(param_space)}')
 
     log_dir = f'{results_dir}/logs/{inference}'
 

@@ -11,7 +11,7 @@ from tensorboardX import SummaryWriter
 cuda = torch.cuda.is_available()
 
 
-def evaluate_regression(inference, epochs, log_freq=100, log_dir='logs', verbose=True):
+def evaluate_regression(inference, epochs, log_freq=100, log_dir='logs', verbose=False):
 
     writer = SummaryWriter(log_dir=log_dir)
     # writer.add_graph(inference)
