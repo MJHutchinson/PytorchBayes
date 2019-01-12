@@ -77,5 +77,5 @@ def evaluate_regression(inference, epochs, log_freq=100, log_dir='logs', verbose
 
     writer.close()
 
-    results = {'elbo': elbos, 'test_ll': test_ll, 'test_auxiliary': auxiliary, 'noise_sigma': noise_sigma,
+    return {'elbo': elbos, 'test_ll': test_ll, 'test_auxiliary': auxiliary, 'noise_sigma': noise_sigma,
                'train_ll': train_ll,'train_kl': train_kl}

@@ -10,9 +10,9 @@ import matplotlib.pyplot as plt
 from tensorboardX import SummaryWriter
 
 def main():
-    # data_set = 'wine-quality-red'
+    data_set = 'wine-quality-red'
     # data_set = 'concrete'
-    data_set = 'protein-tertiary-structure'
+    # data_set = 'protein-tertiary-structure'
     # data_set = 'yacht'
     log_dir = './logs'
     fig_dir = f'{log_dir}/figs'
@@ -23,8 +23,8 @@ def main():
     test_batch_size = 900
     epochs = 50000
 
-    train_loader = RegressionDataloader(data_set, batch_size, data_dir=os.path.abspath('./data'), train=True, shuffle=True)
-    test_loader  = RegressionDataloader(data_set, batch_size, data_dir=os.path.abspath('./data'), train=False, shuffle=False)
+    train_loader = RegressionDataloader(data_set, batch_size, data_dir=os.path.abspath('./data_dir'), train=True, shuffle=True)
+    test_loader  = RegressionDataloader(data_set, batch_size, data_dir=os.path.abspath('./data_dir'), train=False, shuffle=False)
 
     input_size, train_length, output_size = train_loader.get_dims()
 

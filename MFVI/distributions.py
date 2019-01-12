@@ -52,4 +52,6 @@ class Normal(Distribution):
             log_var_diff = 0.5 * (-self.logvar + distribution.logvar)
             mu_diff_term = 0.5 * ((self.mu - distribution.mu) ** 2 + torch.exp(self.logvar))/torch.exp(distribution.logvar)
 
+            torch.distributions.kl
+
             return const_term + log_var_diff + mu_diff_term

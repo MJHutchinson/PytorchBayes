@@ -92,10 +92,8 @@ for idx, (hidden_size, lr, prior_var) in enumerate(param_space):
 
     log_dir = f'{results_dir}/logs/{inference}'
 
-    # Run a standard test on the model, logging training info etc
-    result = evaluate_regression(inference, epochs, log_freq=100, log_dir=log_dir)
+    result = evaluate_regression(inference, epochs, log_freq=100, log_dir=log_dir, verbose=False)
 
-    # Dump results to a sensibly named file
     experiment_config = inference.get_config()
     train_config = {'batch_size': batch_size, 'epochs': epochs, 'results': result}
     result = {**experiment_config, **train_config, 'results': result}
