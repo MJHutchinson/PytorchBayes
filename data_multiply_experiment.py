@@ -100,13 +100,15 @@ for idx, dm in enumerate(data_multiply):
     optimiser = torch.optim.Adam([{'params':model.parameters()}, {'params': loss.parameters()}], lr=learning_rate)
     inference = mm.MeanFieldVariationalInference(model, loss, auxiliary, optimiser, train_loader, test_loader)
 
+    name = f'data_multiply_{dm}_{inference}'
+
     print(f'{args.dataset} - running model {inference}, parameter set {idx+1} of {len(data_multiply)}')
-    log_dir = f'{results_dir}/logs/data_multiply_{dm}_{inference}'
-    result = evaluate_bayes_regression(inference, epochs, log_freq=100, log_dir=log_dir, verbose=True)
+    log_dir = f'{results_dir}/logs/{name}'
+    result = evaluate_bayes_regression(inference, 100, log_freq=100, log_dir=log_dir, verbose=True)
     experiment_config = inference.get_config()
     train_config = {'data_multiply': dm, 'batch_size': batch_size, 'epochs': epochs, 'results': result}
     result = {**experiment_config, **train_config, 'results': result}
 
-    result_file = f'{results_dir}/data_multiply_{dm}_{inference}.pkl'
+    result_file = f'{results_dir}/{name}.pkl'
     with open(result_file, 'wb') as h:
         pickle.dump(result, h)

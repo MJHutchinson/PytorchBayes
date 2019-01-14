@@ -70,7 +70,7 @@ def plot_results(data_set):
 
         num_weights[prior_var].append(weights)
         layer_size[prior_var].append(h[1])
-        final_ll[prior_var].append(result['results']['train_ll'][-1])
+        final_ll[prior_var].append(result['results']['test_ll'][-1])
         final_rmse[prior_var].append(result['results']['test_auxiliary'][-1])
         final_cost[prior_var].append(result['results']['elbo'][-1])
 

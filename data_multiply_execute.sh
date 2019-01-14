@@ -2,7 +2,7 @@
 
 export CUDA_VISIBLE_DEVICES=1
 python data_multiply_experiment.py -c ./config/data_multiply/wine-quality-red.yaml           -ds wine-quality-red            -ld /scratch/mjh252/logs/pytorch -dd /scratch/mjh252/data/UCL/ -cm data-multiply -nd &
-python data_multiply_experiment.py -c ./config/data_multiply/energy.yaml.yaml                -ds energy                      -ld /scratch/mjh252/logs/pytorch -dd /scratch/mjh252/data/UCL/ -cm data-multiply -nd &
+python data_multiply_experiment.py -c ./config/data_multiply/energy.yaml                     -ds energy                      -ld /scratch/mjh252/logs/pytorch -dd /scratch/mjh252/data/UCL/ -cm data-multiply -nd &
 python data_multiply_experiment.py -c ./config/data_multiply/bostonHousing.yaml              -ds bostonHousing               -ld /scratch/mjh252/logs/pytorch -dd /scratch/mjh252/data/UCL/ -cm data-multiply -nd &
 
 export CUDA_VISIBLE_DEVICES=2

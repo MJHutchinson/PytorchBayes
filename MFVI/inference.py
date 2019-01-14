@@ -71,8 +71,8 @@ class MeanFieldVariationalInference(Module):
 
         for batch_idx, (inputs, targets) in enumerate(self.test_loader):
 
-            if cuda:
-                inputs, targets = inputs.cuda(), targets.cuda()
+            # if cuda:
+            #     inputs, targets = inputs.cuda(), targets.cuda()
 
             inputs  = inputs.unsqueeze(0).repeat(self.test_samples, 1, 1)
 
@@ -112,11 +112,9 @@ class MeanFieldVariationalInference(Module):
         # Loop over all batches
         for batch_idx, (inputs, targets) in enumerate(data):
 
-            if cuda:
-                inputs = inputs.cuda()
-
             inputs  = inputs.unsqueeze(0).repeat(self.test_samples, 1, 1)
             preds = self.model.forward_prob(inputs).cpu().numpy()
+            targets = targets.cpu().numpy()
             # Compute average loss
             if predictions is None:
                 predictions = preds

@@ -99,14 +99,16 @@ for idx, (hidden_layer, hidden_size, lr, prior_var) in enumerate(param_space):
     optimiser = torch.optim.Adam([{'params':model.parameters()}, {'params': loss.parameters()}], lr=lr)
     inference = mm.MeanFieldVariationalInference(model, loss, auxiliary, optimiser, train_loader, test_loader)
 
+    name = f'{inference}'
+
     print(f'{args.dataset} - running model {inference}, parameter set {idx+1} of {len(param_space)}')
-    log_dir = f'{results_dir}/logs/{inference}'
+    log_dir = f'{results_dir}/logs/{name}'
     result = evaluate_bayes_regression(inference, epochs, log_freq=100, log_dir=log_dir, verbose=True)
     experiment_config = inference.get_config()
     train_config = {'batch_size': batch_size, 'epochs': epochs, 'results': result}
     result = {**experiment_config, **train_config, 'results': result}
 
-    result_file = f'{results_dir}/{inference}.pkl'
+    result_file = f'{results_dir}/{name}.pkl'
     with open(result_file, 'wb') as h:
         pickle.dump(result, h)
 

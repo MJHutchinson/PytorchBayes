@@ -4,6 +4,8 @@ import torch
 import torch.utils.data as data
 import numpy as np
 
+cuda = torch.cuda.is_available()
+
 
 class ClassificationDataset(data.Dataset):
 
@@ -105,6 +107,7 @@ class RegressionDataloader():
         self.batch_size = batch_size
         self.train = train
         self.shuffle = shuffle
+        self.stored_in_mem = False
 
         f = open(f'{data_dir}/{self.pickle_name}.pkl', 'rb')
         train_set, valid_set, test_set = pickle.load(f)
@@ -147,6 +150,14 @@ class RegressionDataloader():
         self.classes = self.Y.shape[1]
         self.real_data_size = self.data_size
 
+        if batch_size > self.real_data_size:
+            self.stored_in_mem = True
+            self.X_tensor = torch.Tensor(self.X)
+            self.Y_tensor = torch.Tensor(self.Y)
+            if cuda:
+                self.X_tensor = self.X_tensor.cuda()
+                self.Y_tensor = self.Y_tensor.cuda()
+
 
     def transform(self, X, Y):
         return (X-self.X_means)/self.X_sigmas, (Y - self.Y_means)/self.Y_sigmas
@@ -185,16 +196,28 @@ class RegressionDataloaderIter(object):
             self.X = self.X[indices]
             self.Y = self.Y[indices]
 
+        self.stored_in_mem = dataloader.stored_in_mem
+        if self.stored_in_mem:
+            self.X_tensor = dataloader.X_tensor
+            self.Y_tensor = dataloader.Y_tensor
+
     def __next__(self):
         if self.index == self.length:
             raise StopIteration
 
-        start_ind = self.index * self.batch_size
-        end_ind = np.min([(self.index + 1) * self.batch_size, self.data_size])
+        if self.stored_in_mem:
+            self.index += 1
+            return (self.X_tensor, self.Y_tensor)
+        else:
+            start_ind = self.index * self.batch_size
+            end_ind = np.min([(self.index + 1) * self.batch_size, self.data_size])
 
-        self.index += 1
+            self.index += 1
 
-        return (torch.Tensor(self.X[start_ind:end_ind, :]), torch.Tensor(self.Y[start_ind:end_ind]))
+            if cuda:
+                return torch.Tensor(self.X[start_ind:end_ind, :]).cuda(), torch.Tensor(self.Y[start_ind:end_ind]).cuda()
+            else:
+                return torch.Tensor(self.X[start_ind:end_ind, :]), torch.Tensor(self.Y[start_ind:end_ind])
 
     def __len__(self):
         return self.length
