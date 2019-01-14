@@ -145,6 +145,7 @@ class RegressionDataloader():
             self.Y = np.expand_dims(self.Y, 1)
 
         self.classes = self.Y.shape[1]
+        self.real_data_size = self.data_size
 
 
     def transform(self, X, Y):
@@ -174,7 +175,7 @@ class RegressionDataloaderIter(object):
         self.Y = dataloader.Y
         self.batch_size = dataloader.batch_size
         self.length = dataloader.length
-        self.data_size = dataloader.data_size
+        self.data_size = dataloader.real_data_size
         self.shuffle = dataloader.shuffle
         self.index = 0
 

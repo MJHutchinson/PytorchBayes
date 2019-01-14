@@ -7,12 +7,17 @@ cuda = torch.cuda.is_available()
 
 class LogHomoskedasticGaussianLoss(_Loss):
 
-    def __init__(self, log_var_init=-6):
+    def __init__(self, log_var_init=-6, reduction='mean'):
         super().__init__()
         self.log_var = nn.Parameter(torch.Tensor([log_var_init]))
 
     def forward(self, inputs, targets):
-        return torch.distributions.Normal(inputs, torch.exp(0.5 * self.log_var)).log_prob(targets).mean()
+        log_probs = torch.distributions.Normal(inputs, torch.exp(0.5 * self.log_var)).log_prob(targets)
+
+        if self.reduction is not None:
+            log_probs = log_probs.mean() if self.reduction == 'mean' else log_probs.sum()
+
+        return log_probs
 
     def test(self, inputs, targets):
         log_probs = torch.distributions.Normal(inputs, torch.exp(0.5 * self.log_var)).log_prob(targets)
@@ -23,7 +28,10 @@ class LogHomoskedasticGaussianLoss(_Loss):
 
         log_probs = log_probs - correction
 
-        return log_probs.sum()
+        if self.reduction is not None:
+            log_probs = log_probs.mean() if self.reduction == 'mean' else log_probs.sum()
+
+        return log_probs
 
 
 class CrossEntropyLoss(_Loss):

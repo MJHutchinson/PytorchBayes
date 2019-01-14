@@ -1,21 +1,52 @@
 import torch
+import torch.nn as nn
 from torch.nn import Module
+from copy import deepcopy
 import numpy as np
 
 cuda = torch.cuda.is_available()
 
-class MeanFieldVariationalInference(Module):
 
-    def __init__(self, model, loss, auxiliary, optimiser, train_loader, test_loader, train_samples=10, test_samples=100):
+class MLP(nn.Module):
+
+    def __init__(self, input_size, hidden_sizes, output_size, activation_function=nn.ReLU()):
+        super().__init__()
+
+        self.config = {
+            'hidden_size': hidden_sizes,
+        }
+
+        layers = []
+
+        sizes = deepcopy(hidden_sizes)
+
+        sizes.append(output_size)
+        sizes.insert(0, input_size)
+
+        for i in range(0, len(sizes) - 1):
+            layers.append(nn.Linear(sizes[i], sizes[i + 1]))
+            if i != (len(sizes) - 2):
+                layers.append(activation_function)
+
+        self.layers = nn.Sequential(*layers)
+
+
+    def forward(self, input):
+        return self.layers(input)
+
+
+class MLPTrainer(Module):
+
+    def forward(self, *input):
+        pass
+
+    def __init__(self, model, loss, optimiser, train_loader, test_loader):
         super().__init__()
         self.model = model
         self.loss = loss
-        self.auxiliary = auxiliary
         self.optimiser = optimiser
         self.train_loader = train_loader
         self.test_loader = test_loader
-        self.train_samples = train_samples
-        self.test_samples = test_samples
 
         _,_,_,self.y_scale = self.train_loader.get_transforms()
         self.y_scale = torch.Tensor(self.y_scale)
@@ -26,12 +57,11 @@ class MeanFieldVariationalInference(Module):
         self.data_size = 0
         self.test_size = 0
 
-        self.data_size = torch.Tensor([train_loader.data_size])
-        self.test_size = torch.Tensor([test_loader.data_size])
+        for idx, (inputs, targets) in enumerate(train_loader):
+            self.data_size += inputs.size()[0]
 
-        if cuda:
-            self.data_size = self.data_size.cuda()
-            self.test_size = self.test_size.cuda()
+        for idx, (inputs, targets) in enumerate(test_loader):
+            self.test_size += inputs.size()[0]
 
     def train_step(self):
         self.model.train()
@@ -41,62 +71,43 @@ class MeanFieldVariationalInference(Module):
             if cuda:
                 inputs, targets = inputs.cuda(), targets.cuda()
 
-            targets = targets.unsqueeze(0).repeat(self.train_samples, 1, 1)
-            inputs  = inputs.unsqueeze(0).repeat(self.train_samples, 1, 1)
-
             with torch.enable_grad():
-                outputs = self.model.forward_prob(inputs)
+                outputs = self.model(inputs)
 
                 outputs = outputs * self.y_scale
                 targets = targets * self.y_scale
 
-                kl = self.model.kl() / self.data_size
-                log_lik = self.loss(outputs, targets).mean()
-                elbo = - log_lik + kl
+                loss = self.loss(outputs, targets).sum()
 
                 self.optimiser.zero_grad()
-                elbo.backward()
+                loss.backward()
                 self.optimiser.step()
 
-
-        return elbo.detach().cpu().numpy().tolist()[0], log_lik.detach().cpu().numpy().tolist(), kl.detach().cpu().numpy().tolist()[0]
-
+        return loss.detach().cpu().numpy().tolist()
 
     @torch.no_grad()
     def evaluate(self):
         self.model.eval()
 
-        total_log_likelihood = 0.
-        total_auxiliary_metric = 0.
+        total_loss = 0.
 
         for batch_idx, (inputs, targets) in enumerate(self.test_loader):
 
             if cuda:
                 inputs, targets = inputs.cuda(), targets.cuda()
 
-            inputs  = inputs.unsqueeze(0).repeat(self.test_samples, 1, 1)
-
-            outputs = self.model.forward_prob(inputs)
+            outputs = self.model(inputs)
 
             outputs = outputs * self.y_scale
             targets = targets * self.y_scale
 
-            loss = self.loss.test(outputs, targets).sum()
+            loss = self.loss(outputs, targets).sum()
 
-            # preds = outputs.argmax(dim=1)
-            # correct = preds.eq(targets.long()).sum()
+            total_loss += loss / self.test_size
 
-            rmse = self.auxiliary(outputs.mean(0), targets).sum()
+        total_loss = total_loss.cpu().numpy().tolist()
 
-            total_log_likelihood += loss/self.test_size
-            total_auxiliary_metric += rmse/self.test_size
-
-        kl = self.model.kl()
-
-        total_log_likelihood   = total_log_likelihood.cpu().numpy().tolist()[0]
-        total_auxiliary_metric = total_auxiliary_metric.cpu().numpy().tolist()[0]
-
-        return total_log_likelihood, kl / self.data_size, total_auxiliary_metric
+        return total_loss
 
     @torch.no_grad()
     def predictions(self, train=False):
@@ -115,13 +126,12 @@ class MeanFieldVariationalInference(Module):
             if cuda:
                 inputs = inputs.cuda()
 
-            inputs  = inputs.unsqueeze(0).repeat(self.test_samples, 1, 1)
-            preds = self.model.forward_prob(inputs).cpu().numpy()
+            preds = self.model(inputs).cpu().numpy()
             # Compute average loss
             if predictions is None:
                 predictions = preds
             else:
-                predictions = np.append(predictions, preds, axis=1)
+                predictions = np.append(predictions, preds, axis=0)
 
             if actuals is None:
                 actuals = targets
