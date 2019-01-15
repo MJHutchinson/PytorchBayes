@@ -91,4 +91,4 @@ def plot_results(data_set):
 # plot_results(data['power'])
 # plot_results(data['protein'])
 # plot_results(data['wine'])
-plot_results(data['yacht'])
+# plot_results(data['yacht'])

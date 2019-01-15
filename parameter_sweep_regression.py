@@ -23,6 +23,7 @@ parser.add_argument('-ds', '--dataset', default='kin8nm')
 parser.add_argument('-ld', '--logdir', default='./results')
 parser.add_argument('-dd', '--datadir', default='./data_dir')
 parser.add_argument('-cm', '--commonname', default=None)
+parser.add_argument('-nd', '--nodatetime', action='store_true')
 args = parser.parse_args()
 
 experiment_config = yaml.load(open(args.config, 'rb'))
